@@ -18,8 +18,8 @@ var (
 	timers          = make(map[string]*time.Timer)
 	sourcePath      string
 	destinationPath string
-	verbose					bool
-	waitTime				int
+	verbose         bool
+	waitTime        int
 	waitFor         time.Duration
 	callback        = func(path string) {
 		fmt.Println("Timer expired, moving file or directory:", path)
