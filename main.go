@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/s3rj1k/go-fanotify/fanotify"
@@ -21,10 +22,13 @@ var (
 	verbose         bool
 	waitTime        int
 	waitFor         time.Duration
+	mu              sync.Mutex
 	callback        = func(path string) {
 		fmt.Println("Timer expired, moving file or directory:", path)
 		os.Rename(filepath.Join(sourcePath, path), filepath.Join(destinationPath, path))
+		mu.Lock()
 		delete(timers, path)
+		mu.Unlock()
 	}
 )
 
@@ -110,7 +114,9 @@ func main() {
 
 		if data.MatchMask(unix.FAN_CLOSE_WRITE) || data.MatchMask(unix.FAN_MODIFY) {
 			name := getWatchComponent(path, sourcePath)
+			mu.Lock()
 			timer, ok := timers[name]
+			mu.Unlock()
 
 			// If no timer exists yet, create one
 			if !ok {
@@ -118,7 +124,9 @@ func main() {
 				timer = time.AfterFunc(math.MaxInt64, func() { callback(name) })
 				timer.Stop()
 
+				mu.Lock()
 				timers[name] = timer
+				mu.Unlock()
 			}
 
 			// An event was registered, so reset the timer
