@@ -96,8 +96,6 @@ func main() {
 			continue
 		}
 
-		defer data.Close()
-
 		path, err := data.GetPath()
 		if err != nil {
 			log.Fatalf("Error getting path for event. %v\n", err)
@@ -105,6 +103,7 @@ func main() {
 
 		// Filter out events not related to our source path
 		if !strings.HasPrefix(path, sourcePath) {
+			data.Close()
 			continue
 		}
 
@@ -135,6 +134,7 @@ func main() {
 			}
 			timer.Reset(waitFor)
 		}
+		data.Close()
 	}
 }
 
