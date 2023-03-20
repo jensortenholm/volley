@@ -25,7 +25,14 @@ var (
 	mu              sync.Mutex
 	callback        = func(path string) {
 		fmt.Println("Timer expired, moving file or directory:", path)
-		os.Rename(filepath.Join(sourcePath, path), filepath.Join(destinationPath, path))
+    src := filepath.Join(sourcePath, path)
+    dst := filepath.Join(destinationPath, path)
+
+		err := os.Rename(src, dst)
+    if err != nil {
+      fmt.Printf("Error moving %v to %v: %v", src, dst, err)
+    }
+
 		mu.Lock()
 		delete(timers, path)
 		mu.Unlock()
